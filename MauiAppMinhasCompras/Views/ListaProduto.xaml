@@ -4,21 +4,72 @@
              x:Class="MauiAppMinhasCompras.Views.ListaProduto"
              Title="Minhas Compras">
 
-    <VerticalStackLayout Padding="20" Spacing="10">
-        <Button Text="➕ Novo Produto" 
-                Clicked="OnNovoClicked"
-                BackgroundColor="Green" TextColor="White" />
+    <VerticalStackLayout Padding="15" Spacing="15">
 
-        <CollectionView x:Name="cvProdutos" ItemsSource="{Binding .}" Margin="0,20,0,0">
+        <!-- SearchBar -->
+        <SearchBar x:Name="searchBar"
+                   Placeholder="Digite para buscar produtos..."
+                   TextChanged="OnSearchTextChanged"
+                   Margin="0,0,0,10"
+                   HeightRequest="50" />
+        
+        <!-- Botão Produto -->
+        <Button Text="➕ Novo Produto"
+                Clicked="OnNovoClicked"
+                BackgroundColor="#006400"
+                TextColor="White"
+                FontSize="18"
+                HeightRequest="55"
+                CornerRadius="8" />
+
+        <!-- Lista de Produtos -->
+        <CollectionView x:Name="cvProdutos" 
+                        ItemsSource="{Binding .}" 
+                        Margin="0,10,0,0"
+                        HeightRequest="380">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Grid ColumnDefinitions="*,Auto,Auto" Padding="10">
-                        <Label Text="{Binding Descricao}" FontSize="Medium" VerticalOptions="Center" />
-                        <Label Grid.Column="1" Text="{Binding Quantidade, StringFormat='{0} un'}" FontSize="Medium" />
-                        <Label Grid.Column="2" Text="{Binding Preco, StringFormat='{0:C}'}" FontSize="Medium" />
-                    </Grid>
+                    <Frame Padding="12" Margin="0,5" CornerRadius="8" BackgroundColor="White" HasShadow="True">
+                        <Grid ColumnDefinitions="*, Auto, Auto">
+                            <Label Text="{Binding Descricao}" 
+                                   FontSize="Medium" 
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1" 
+                                   Text="{Binding Quantidade, StringFormat='{0} un'}"
+                                   FontSize="Medium" 
+                                   HorizontalOptions="End"
+                                   Margin="0,0,15,0"/>
+                            <Label Grid.Column="2" 
+                                   Text="{Binding Preco, StringFormat='{0:C}'}"
+                                   FontSize="Medium" 
+                                   TextColor="#006400"
+                                   FontAttributes="Bold"/>
+                        </Grid>
+                    </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <!-- CARD VALOR TOTAL (funcionalidade nova) -->
+        <Frame BackgroundColor="#006400" 
+               CornerRadius="12" 
+               Padding="20" 
+               HasShadow="True">
+            <VerticalStackLayout>
+                <Label Text="VALOR TOTAL DAS COMPRAS" 
+                       TextColor="White" 
+                       FontSize="14" 
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+                <Label x:Name="lblTotal" 
+                       Text="R$ 0,00" 
+                       TextColor="White" 
+                       FontSize="28" 
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Frame>
+
     </VerticalStackLayout>
 </ContentPage>
