@@ -1,87 +1,103 @@
-// Importa a classe que faz a conex„o com o banco de dados SQLite
+Ôªø// Importa a classe que faz a conex√£o com o banco de dados SQLite
 using MauiAppMinhasCompras.Helpers;
-
 // Importa a classe Produto (modelo dos dados)
 using MauiAppMinhasCompras.Models;
-
-using System.Collections.ObjectModel;   // necess·rio para ObservableCollection
+using System.Collections.ObjectModel;
+using System;
 
 namespace MauiAppMinhasCompras.Views;
 
-// P·gina que mostra a lista de produtos
 public partial class ListaProduto : ContentPage
 {
-    // Vari·vel que guarda a conex„o com o banco de dados
     private readonly SQLiteDatabaseHelper _db;
-
-    // Novo - Lista completa vinda do SQLite 
     private List<Produto> todosProdutos = new List<Produto>();
-
-    // Novo - ObservableCollection que a CollectionView usa 
     private ObservableCollection<Produto> produtosFiltrados = new ObservableCollection<Produto>();
 
-    // Construtor da p·gina (executa quando a tela abre)
     public ListaProduto()
     {
-        InitializeComponent(); // Carrega os elementos visuais do XAML
-
-        _db = App.Db; // Pega a conex„o do banco criada no App.cs
-
-        CarregarProdutos(); // Carrega os produtos do banco
+        InitializeComponent();
+        _db = App.Db;
+        CarregarProdutos();
     }
 
-    // Novo - MÈtodo que busca todos os produtos no banco
     private async void CarregarProdutos()
     {
         todosProdutos = await _db.GetAll();
-
         produtosFiltrados.Clear();
         foreach (var p in todosProdutos)
             produtosFiltrados.Add(p);
 
-        cvProdutos.ItemsSource = produtosFiltrados;   // Novo - liga ‡ ObservableCollection
-        CalcularTotal(todosProdutos);                 // Novo - total inicial = todos
+        lstProdutos.ItemsSource = produtosFiltrados;
+        CalcularTotal(todosProdutos);
     }
 
-    // Novo - Evento TextChanged do SearchBar
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
         string textoBusca = e.NewTextValue?.ToLower().Trim() ?? "";
-
         produtosFiltrados.Clear();
-
         var resultados = todosProdutos.Where(p =>
-            string.IsNullOrEmpty(textoBusca) ||
-            p.Descricao.ToLower().Contains(textoBusca)
+             string.IsNullOrEmpty(textoBusca) ||
+             p.Descricao.Contains(textoBusca, StringComparison.OrdinalIgnoreCase)
         ).ToList();
 
         foreach (var p in resultados)
             produtosFiltrados.Add(p);
 
-        CalcularTotal(resultados);   // Novo - total agora reflete apenas os produtos filtrados
+        lstProdutos.ItemsSource = produtosFiltrados;
+        CalcularTotal(resultados);
     }
 
-    // Novo - Calcula o valor total (atualizado para aceitar lista filtrada)
     private void CalcularTotal(IEnumerable<Produto> produtos)
     {
-        // Soma (Quantidade ◊ PreÁo) de todos os produtos
         decimal total = produtos.Sum(p => p.Quantidade * p.Preco);
-
-        lblTotal.Text = total.ToString("C"); // Mostra o total em formato de moeda (R$)
+        lblTotal.Text = total.ToString("C");
     }
 
-    // Executa quando o bot„o "Novo Produto" È clicado
     private async void OnNovoClicked(object sender, EventArgs e)
     {
-        // Abre a tela para cadastrar um novo produto
         await Navigation.PushAsync(new NovoProduto(_db));
     }
 
-    // Executa sempre que a p·gina aparece na tela
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        CarregarProdutos();
+    }
 
-        CarregarProdutos(); // Atualiza a lista de produtos
+    // CLIQUE NO PRODUTO QUE ABRE EDI√á√ÉO 
+    private async void OnItemTapped(object sender, TappedEventArgs e)
+    {
+        if (sender is Frame frame && frame.BindingContext is Produto produto)
+        {
+            var editarPage = new EditarProduto();
+            editarPage.BindingContext = produto;   // ‚Üê passa o produto
+            await Navigation.PushAsync(editarPage);
+        }
+    }
+
+    // BOT√ÉO DIREITO EXCLUIR 
+    private async void OnExcluirClicked(object sender, EventArgs e)
+    {
+        var menuItem = sender as MenuItem;
+        var produto = menuItem?.BindingContext as Produto;
+
+        if (produto == null) return;
+
+        bool confirm = await DisplayAlert("Confirma√ß√£o",
+            $"Deseja realmente excluir '{produto.Descricao}'?", "Sim", "N√£o");
+
+        if (confirm)
+        {
+            try
+            {
+                await _db.Delete(produto.Id);
+                await DisplayAlert("Sucesso", "Produto exclu√≠do!", "OK");
+                CarregarProdutos();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ops", ex.Message, "OK");
+            }
+        }
     }
 }

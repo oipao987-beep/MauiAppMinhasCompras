@@ -22,36 +22,55 @@
                 HeightRequest="55"
                 CornerRadius="8" />
 
-        <!-- Lista de Produtos -->
-        <CollectionView x:Name="cvProdutos" 
-                        ItemsSource="{Binding .}" 
-                        Margin="0,10,0,0"
-                        HeightRequest="380">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Padding="12" Margin="0,5" CornerRadius="8" BackgroundColor="White" HasShadow="True">
-                        <Grid ColumnDefinitions="*, Auto, Auto">
-                            <Label Text="{Binding Descricao}" 
-                                   FontSize="Medium" 
-                                   FontAttributes="Bold"
-                                   VerticalOptions="Center" />
-                            <Label Grid.Column="1" 
-                                   Text="{Binding Quantidade, StringFormat='{0} un'}"
-                                   FontSize="Medium" 
-                                   HorizontalOptions="End"
-                                   Margin="0,0,15,0"/>
-                            <Label Grid.Column="2" 
-                                   Text="{Binding Preco, StringFormat='{0:C}'}"
-                                   FontSize="Medium" 
-                                   TextColor="#006400"
-                                   FontAttributes="Bold"/>
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- LISTA DE PRODUTOS + contexto no botão direito "Excluír" -->
+        <!-- LISTA COM MENU DE CONTEXTO + clique para editar -->
+        <ListView x:Name="lstProdutos"
+          ItemsSource="{Binding .}"
+          Margin="0,10,0,0"
+          HeightRequest="400"
+          HasUnevenRows="True"
+          SelectionMode="None">
 
-        <!-- CARD VALOR TOTAL (funcionalidade nova) -->
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <!-- MENU BOTÃO DIREITO (Excluir) -->
+                        <ViewCell.ContextActions>
+                            <MenuItem Text="Excluir"
+                              Clicked="OnExcluirClicked" 
+                              IsDestructive="True" />
+                        </ViewCell.ContextActions>
+
+                        <!-- FRAME COM CLIQUE PARA EDITAR -->
+                        <Frame Padding="10" Margin="0,5" CornerRadius="10" 
+                       BackgroundColor="White" HasShadow="True">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnItemTapped" />
+                            </Frame.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="*, Auto, Auto">
+                                <Label Text="{Binding Descricao}"
+                               FontSize="Medium"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                               Text="{Binding Quantidade, StringFormat='{0} un'}"
+                               FontSize="Medium"
+                               HorizontalOptions="End"
+                               Margin="0,0,15,0"/>
+                                <Label Grid.Column="2"
+                               Text="{Binding Preco, StringFormat='{0:C}'}"
+                               FontSize="Medium"
+                               TextColor="#006400"
+                               FontAttributes="Bold"/>
+                            </Grid>
+                        </Frame>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!-- CARD VALOR TOTAL -->
         <Frame BackgroundColor="#006400" 
                CornerRadius="12" 
                Padding="20" 
