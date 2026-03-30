@@ -1,9 +1,6 @@
-﻿// Importa a classe que faz a conexão com o banco de dados SQLite
-using MauiAppMinhasCompras.Helpers;
-// Importa a classe Produto (modelo dos dados)
+﻿using MauiAppMinhasCompras.Helpers;
 using MauiAppMinhasCompras.Models;
 using System.Collections.ObjectModel;
-using System;
 
 namespace MauiAppMinhasCompras.Views;
 
@@ -17,29 +14,50 @@ public partial class ListaProduto : ContentPage
     {
         InitializeComponent();
         _db = App.Db;
-        CarregarProdutos();
+
+        // Preenche o Picker com as opções
+        pickerCategoriaFiltro.ItemsSource = new List<string>
+        {
+            "Todas", "Alimentos", "Higiene Pessoal", "Limpeza", "Bebidas", "Outros"
+        };
+        pickerCategoriaFiltro.SelectedIndex = 0; // Todas
     }
 
-    private async void CarregarProdutos()
+    private async void CarregarProdutos(string categoriaFiltro = "Todas")
     {
         todosProdutos = await _db.GetAll();
+
+        var filtrados = todosProdutos;
+
+        // Aplica filtro de categoria
+        if (categoriaFiltro != "Todas")
+            filtrados = filtrados.Where(p => p.Categoria == categoriaFiltro).ToList();
+
         produtosFiltrados.Clear();
-        foreach (var p in todosProdutos)
+        foreach (var p in filtrados)
             produtosFiltrados.Add(p);
 
         lstProdutos.ItemsSource = produtosFiltrados;
-        CalcularTotal(todosProdutos);
+        CalcularTotal(filtrados);
+    }
+
+    private void OnFiltroCategoriaChanged(object sender, EventArgs e)
+    {
+        string filtro = pickerCategoriaFiltro.SelectedItem?.ToString() ?? "Todas";
+        CarregarProdutos(filtro);
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
         string textoBusca = e.NewTextValue?.ToLower().Trim() ?? "";
-        produtosFiltrados.Clear();
+        string categoriaFiltro = pickerCategoriaFiltro.SelectedItem?.ToString() ?? "Todas";
+
         var resultados = todosProdutos.Where(p =>
-             string.IsNullOrEmpty(textoBusca) ||
-             p.Descricao.Contains(textoBusca, StringComparison.OrdinalIgnoreCase)
+            (string.IsNullOrEmpty(textoBusca) || p.Descricao.Contains(textoBusca, StringComparison.OrdinalIgnoreCase)) &&
+            (categoriaFiltro == "Todas" || p.Categoria == categoriaFiltro)
         ).ToList();
 
+        produtosFiltrados.Clear();
         foreach (var p in resultados)
             produtosFiltrados.Add(p);
 
@@ -64,23 +82,22 @@ public partial class ListaProduto : ContentPage
         CarregarProdutos();
     }
 
-    // CLIQUE NO PRODUTO QUE ABRE EDIÇÃO 
+    // CLIQUE NO PRODUTO QUE ABRE EDIÇÃO
     private async void OnItemTapped(object sender, TappedEventArgs e)
     {
         if (sender is Frame frame && frame.BindingContext is Produto produto)
         {
-            var editarPage = new EditarProduto();
-            editarPage.BindingContext = produto;   // ← passa o produto
+            var editarPage = new EditorProduto();   // ✅ CORRIGIDO AQUI
+            editarPage.BindingContext = produto;
             await Navigation.PushAsync(editarPage);
         }
     }
 
-    // BOTÃO DIREITO EXCLUIR 
+    // BOTÃO DIREITO EXCLUIR
     private async void OnExcluirClicked(object sender, EventArgs e)
     {
         var menuItem = sender as MenuItem;
         var produto = menuItem?.BindingContext as Produto;
-
         if (produto == null) return;
 
         bool confirm = await DisplayAlert("Confirmação",
@@ -88,16 +105,42 @@ public partial class ListaProduto : ContentPage
 
         if (confirm)
         {
-            try
+            await _db.Delete(produto.Id);
+            await DisplayAlert("Sucesso", "Produto excluído!", "OK");
+            CarregarProdutos(pickerCategoriaFiltro.SelectedItem?.ToString() ?? "Todas");
+        }
+    }
+
+    // !RELATÓRIO POR CATEGORIA (Desafio 1)!
+    private async void OnRelatorioClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var relatorio = todosProdutos
+                .Where(p => !string.IsNullOrEmpty(p.Categoria))
+                .GroupBy(p => p.Categoria)
+                .Select(g => new
+                {
+                    Categoria = g.Key,
+                    Total = g.Sum(p => p.Quantidade * p.Preco)
+                })
+                .OrderByDescending(g => g.Total);
+
+            string texto = "=== RELATÓRIO POR CATEGORIA ===\n\n";
+
+            foreach (var item in relatorio)
             {
-                await _db.Delete(produto.Id);
-                await DisplayAlert("Sucesso", "Produto excluído!", "OK");
-                CarregarProdutos();
+                texto += $"{item.Categoria}: {item.Total:C}\n";
             }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Ops", ex.Message, "OK");
-            }
+
+            if (!relatorio.Any())
+                texto += "Nenhum produto cadastrado.";
+
+            await DisplayAlert("Relatório de Gastos por Categoria", texto, "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
         }
     }
 }

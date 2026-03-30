@@ -1,27 +1,28 @@
-using MauiAppMinhasCompras.Helpers;
+ï»¿using MauiAppMinhasCompras.Helpers;
 using MauiAppMinhasCompras.Models;
 
 namespace MauiAppMinhasCompras.Views;
 
-public partial class EditarProduto : ContentPage
+public partial class EditorProduto : ContentPage
 {
     private readonly SQLiteDatabaseHelper _db;
 
-    public EditarProduto()
+    public EditorProduto()
     {
         InitializeComponent();
-        _db = App.Db;                    // usa a mesma conexão que você já tem
+        _db = App.Db;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        // Preenche os campos com os dados atuais do produto
+
         if (BindingContext is Produto p)
         {
             txtDescricao.Text = p.Descricao;
             txtQuantidade.Text = p.Quantidade.ToString();
             txtPreco.Text = p.Preco.ToString();
+            pickerCategoria.SelectedItem = p.Categoria ?? "Outros";
         }
     }
 
@@ -31,28 +32,20 @@ public partial class EditarProduto : ContentPage
         {
             if (string.IsNullOrWhiteSpace(txtDescricao.Text))
             {
-                await DisplayAlert("Erro", "A descrição é obrigatória!", "OK");
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(txtQuantidade.Text))
-            {
-                await DisplayAlert("Erro", "A quantidade é obrigatória!", "OK");
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(txtPreco.Text))
-            {
-                await DisplayAlert("Erro", "O preço é obrigatório!", "OK");
+                await DisplayAlert("Erro", "A descriÃ§Ã£o Ã© obrigatÃ³ria!", "OK");
                 return;
             }
 
-            var produtoAtual = BindingContext as Produto;
+            if (BindingContext is not Produto produtoAtual)
+                return;
 
             var produtoAtualizado = new Produto
             {
                 Id = produtoAtual.Id,
                 Descricao = txtDescricao.Text,
-                Quantidade = int.Parse(txtQuantidade.Text),   
-                Preco = decimal.Parse(txtPreco.Text)
+                Quantidade = int.Parse(txtQuantidade.Text),
+                Preco = decimal.Parse(txtPreco.Text),
+                Categoria = pickerCategoria.SelectedItem?.ToString() ?? "Outros"
             };
 
             await _db.Update(produtoAtualizado);

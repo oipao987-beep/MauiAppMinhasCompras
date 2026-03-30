@@ -10,6 +10,21 @@
             <Entry x:Name="txtQuantidade" Placeholder="Quantidade" Keyboard="Numeric" />
             <Entry x:Name="txtPreco" Placeholder="Preço" Keyboard="Numeric" />
 
+            <Picker x:Name="pickerCategoria" 
+                    Title="Categoria do Produto"
+                    TitleColor="DarkBlue"
+                    HorizontalOptions="FillAndExpand">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Alimentos</x:String>
+                        <x:String>Higiene Pessoal</x:String>
+                        <x:String>Limpeza</x:String>
+                        <x:String>Bebidas</x:String>
+                        <x:String>Outros</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
             <Button Text="💾 Salvar" Clicked="OnSalvarClicked" BackgroundColor="Blue" TextColor="White"/>
             <Button Text="❌ Cancelar" Clicked="OnCancelarClicked" />
         </VerticalStackLayout>

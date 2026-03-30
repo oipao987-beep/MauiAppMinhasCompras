@@ -1,18 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiAppMinhasCompras.Views.EditarProduto"
+             x:Class="MauiAppMinhasCompras.Views.EditorProduto"
              Title="Editar Produto">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Entry x:Name="txtDescricao" Placeholder="Descrição do produto" />
-        <Entry x:Name="txtQuantidade" Placeholder="Quantidade" Keyboard="Numeric" />
-        <Entry x:Name="txtPreco" Placeholder="Preço" Keyboard="Numeric" />
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+            <Entry x:Name="txtDescricao" Placeholder="Descrição do produto" />
+            <Entry x:Name="txtQuantidade" Placeholder="Quantidade" Keyboard="Numeric" />
+            <Entry x:Name="txtPreco" Placeholder="Preço" Keyboard="Numeric" />
 
-        <Button Text="💾 Salvar" BackgroundColor="Blue" TextColor="White"
-                Clicked="OnSalvarClicked" />
+            <!-- !Picker! -->
+            <Picker x:Name="pickerCategoria" 
+                    Title="Categoria do Produto"
+                    TitleColor="DarkBlue"
+                    HorizontalOptions="FillAndExpand">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Alimentos</x:String>
+                        <x:String>Higiene Pessoal</x:String>
+                        <x:String>Limpeza</x:String>
+                        <x:String>Bebidas</x:String>
+                        <x:String>Outros</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
 
-        <Button Text="❌ Cancelar" BackgroundColor="Teal" TextColor="White"
-                Clicked="OnCancelarClicked" />
-    </VerticalStackLayout>
+            <Button Text="💾 Salvar" Clicked="OnSalvarClicked" BackgroundColor="Blue" TextColor="White"/>
+            <Button Text="❌ Cancelar" Clicked="OnCancelarClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
